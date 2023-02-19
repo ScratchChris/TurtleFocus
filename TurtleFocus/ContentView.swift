@@ -9,77 +9,50 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
+	
+	@State var progressValue: Float = 0.28
     @Environment(\.managedObjectContext) private var viewContext
 
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
 
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
+			ZStack {
+									Color.yellow
+											.opacity(0.1)
+											.edgesIgnoringSafeArea(.all)
+				VStack {
+												ProgressBar(progress: self.$progressValue)
+														.frame(width: 150.0, height: 150.0)
+														.padding(40.0)
+					
+							}
+				Text(String(format: "%.0f %%", min(self.progressValue, 1.0)*100.0))
+						.font(.largeTitle)
+						.bold()
+									}
+         
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+struct ProgressBar: View {
+		@Binding var progress: Float
+		
+		var body: some View {
+				ZStack {
+						Circle()
+								.stroke(lineWidth: 20.0)
+								.opacity(0.3)
+								.foregroundColor(Color.red)
+					
+					Circle()
+						.trim(from: 0.0, to: CGFloat(min(self.progress, 1.0)))
+									.stroke(style: StrokeStyle(lineWidth: 20.0, lineCap: .round, lineJoin: .round))
+									.foregroundColor(Color.red)
+									.rotationEffect(Angle(degrees: 270.0))
+									.animation(.linear)
+				}
+		}
+}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
